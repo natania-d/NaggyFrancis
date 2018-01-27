@@ -11,6 +11,7 @@ import re
 import datetime
 from lyrics import *
 
+
 TOKEN = '424538023:AAG_WU0hiDPABPFKnm94UiatzjUFOuA6CP0'
 
 
@@ -62,6 +63,11 @@ def finals_reminder(bot, update):
 		chat_id = update.message.chat_id
 		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 		bot.send_message(chat_id=chat_id, text=finals_reminder_text)
+	if True:
+		chat_id = update.message.chat_id
+		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
+		image_rand = randrange(1,15)
+		bot.sendPhoto(chat_id=chat_id, photo=open('images/' + str(image_rand) + '.jpg', 'rb'));
 
 def caps(bot, update, args):
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
@@ -128,13 +134,6 @@ def joke(bot, update):
 	bot.send_message(chat_id=chat_id, text="Here's a joke: " + sender_name)
 
 
-def unknown(bot, update):
-	chat_id = update.message.chat_id
-	sender_name = str(update.message.from_user.first_name)
-	bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
-	update.message.reply_text("I'm sorry I'm afraid I can't do that, " + sender_name)
-
-
 # Handlers
 start_handler = CommandHandler('start', start)
 vulgarities_handler = MessageHandler(filter_vulgar, vulgarities)
@@ -145,7 +144,6 @@ remove_handler = CommandHandler('remove', remove_banned, pass_args=True)
 finals_handler = MessageHandler(Filters.text, finals_reminder)
 caps_handler = CommandHandler('caps', caps, pass_args=True)
 joke_handler = CommandHandler('joke', joke)
-unknown_handler = MessageHandler(Filters.command, unknown)
 
 # Dispatching: As soon as you add new handlers to dispatcher, they are in effect.
 dispatcher.add_handler(start_handler)
@@ -157,7 +155,6 @@ dispatcher.add_handler(add_handler)
 dispatcher.add_handler(joke_handler)
 dispatcher.add_handler(finals_handler)
 dispatcher.add_handler(caps_handler)
-dispatcher.add_handler(unknown_handler) # MUST be the last handler to be added
 
 # Run the bot
 updater.start_polling()
