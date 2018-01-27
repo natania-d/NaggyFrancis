@@ -9,6 +9,7 @@ from telegram.ext import BaseFilter
 from random import *
 import re
 import datetime
+from lyrics import *
 
 TOKEN = '424538023:AAG_WU0hiDPABPFKnm94UiatzjUFOuA6CP0'
 
@@ -23,6 +24,7 @@ vulgarity_list_custom = []
 today = datetime.date.today()
 finals_date = datetime.date(2018, 4, 28)
 finals_reminder = "Finals in " + str(finals_date - today).split(",")[0] + "! 😱"
+song_holder = ""
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -31,8 +33,22 @@ class FilterVulgarities(BaseFilter):
     	compiled_lst = vulgarity_list + vulgarity_list_custom
     	return re.compile('|'.join(compiled_lst),re.IGNORECASE).search(message.text)
 
-filter_vulgar = FilterVulgarities()
+class FilterSongs(BaseFilter):
+	def filter(self, message):
+		word_lst = message.text.lower().split(" ")
+		for word in word_lst:
+			try:
+				song_dict[word]
+				global song_holder
+				song_holder = word
+				return True
+			except:
+				continue
+		return False
 
+
+filter_vulgar = FilterVulgarities()
+filter_songs = FilterSongs()
 
 # Functions
 def start(bot, update):
@@ -59,6 +75,11 @@ def vulgarities(bot, update):
 	bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 	bot.send_message(chat_id=chat_id, text=scolding_phrases[chosen] + sender_name + "! " + scolding_emojis[chosen])
 	#bot.kick_chat_member(chat_id=chat_id, user_id=update.message.from_user.id)
+
+def say_lyrics(bot, update):
+	chat_id = update.message.chat_id
+	bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
+	bot.send_message(chat_id=chat_id, text=song_dict[song_holder])
 
 def show_banned(bot, update):
 	chat_id = update.message.chat_id
@@ -116,6 +137,7 @@ def unknown(bot, update):
 # Handlers
 start_handler = CommandHandler('start', start)
 vulgarities_handler = MessageHandler(filter_vulgar, vulgarities)
+song_handler = MessageHandler(filter_songs, say_lyrics)
 banned_handler = CommandHandler('banned', show_banned)
 add_handler = CommandHandler('add', add_banned, pass_args=True)
 remove_handler = CommandHandler('remove', remove_banned, pass_args=True)
@@ -129,6 +151,7 @@ dispatcher.add_handler(start_handler)
 dispatcher.add_handler(remove_handler)
 dispatcher.add_handler(banned_handler)
 dispatcher.add_handler(vulgarities_handler)
+dispatcher.add_handler(song_handler)
 dispatcher.add_handler(add_handler)
 dispatcher.add_handler(joke_handler)
 dispatcher.add_handler(echo_handler)
@@ -137,6 +160,7 @@ dispatcher.add_handler(unknown_handler) # MUST be the last handler to be added
 
 # Run the bot
 updater.start_polling()
+
 
 
 """
