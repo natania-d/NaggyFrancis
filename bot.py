@@ -19,11 +19,11 @@ updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
 scolding_phrases = ["Mind your language, ", "Don't be rude, ", "Watch your mouth, ", "No vulgarities! Be a Francis, ", "Cool kids don't swear, ", "Mind your FUCKING manners, ", "Francis say cannot swear, ", "EH don't vulgar ah, "]
 scolding_emojis = ["🙄", "😤", "🤐", "😑", "😲", "🖕🏻", "😨", "😡"]
-vulgarity_list = ['fuck', 'fug', 'wtf', 'how', 'frick', 'freak', 'ass', 'ccb', 'knn', 'bitch', 'bij', 'screw', 'kanina', 'diu']
+vulgarity_list = ['fuck', 'fug', 'wtf', 'frick', 'freak', 'asshole', 'ccb', 'knn', 'bitch', 'bij', 'screw', 'kanina', 'diu']
 vulgarity_list_custom = []
 today = datetime.date.today()
 finals_date = datetime.date(2018, 4, 28)
-finals_reminder = "Finals in " + str(finals_date - today).split(",")[0] + "! 😱"
+finals_reminder_text = "Guys, finals in " + str(finals_date - today).split(",")[0] + "! 😱"
 song_holder = ""
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -53,15 +53,15 @@ filter_songs = FilterSongs()
 # Functions
 def start(bot, update):
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
-	bot.send_message(chat_id=update.message.chat_id, text="Hi there! I am a copy cat, but I hate vulgarities! 😘")
+	bot.send_message(chat_id=update.message.chat_id, text="Hi there! I hate vulgarities! 😘")
 
-def echo(bot, update):
-	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
+def finals_reminder(bot, update):
 	rand = random()
 	# A 10% chance to give finals reminder
-	if rand <= 0.1:
-		bot.send_message(chat_id=update.message.chat_id, text=finals_reminder)
-	bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
+	if rand <= 0.05:
+		chat_id = update.message.chat_id
+		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
+		bot.send_message(chat_id=chat_id, text=finals_reminder_text)
 
 def caps(bot, update, args):
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
@@ -130,8 +130,9 @@ def joke(bot, update):
 
 def unknown(bot, update):
 	chat_id = update.message.chat_id
+	sender_name = str(update.message.from_user.first_name)
 	bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
-	update.message.reply_text("I'm sorry I'm afraid I can't do that.")
+	update.message.reply_text("I'm sorry I'm afraid I can't do that, " + sender_name)
 
 
 # Handlers
@@ -141,7 +142,7 @@ song_handler = MessageHandler(filter_songs, say_lyrics)
 banned_handler = CommandHandler('banned', show_banned)
 add_handler = CommandHandler('add', add_banned, pass_args=True)
 remove_handler = CommandHandler('remove', remove_banned, pass_args=True)
-echo_handler = MessageHandler(Filters.text, echo)
+finals_handler = MessageHandler(Filters.text, finals_reminder)
 caps_handler = CommandHandler('caps', caps, pass_args=True)
 joke_handler = CommandHandler('joke', joke)
 unknown_handler = MessageHandler(Filters.command, unknown)
@@ -154,7 +155,7 @@ dispatcher.add_handler(vulgarities_handler)
 dispatcher.add_handler(song_handler)
 dispatcher.add_handler(add_handler)
 dispatcher.add_handler(joke_handler)
-dispatcher.add_handler(echo_handler)
+dispatcher.add_handler(finals_handler)
 dispatcher.add_handler(caps_handler)
 dispatcher.add_handler(unknown_handler) # MUST be the last handler to be added
 
