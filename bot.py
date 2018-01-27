@@ -18,14 +18,15 @@ TOKEN = '424538023:AAG_WU0hiDPABPFKnm94UiatzjUFOuA6CP0'
 bot = telegram.Bot(token=TOKEN)
 updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
-scolding_phrases = ["Mind your language, ", "Don't be rude, ", "Watch your mouth, ", "No vulgarities! Be a Francis, ", "Cool kids don't swear, ", "Mind your FUCKING manners, ", "Francis say cannot swear, ", "EH don't vulgar ah, "]
+scolding_phrases = ["Mind your language, ", "Don't be rude, ", "Watch your mouth, ", "No vulgarities! Be a Francis, ", "Cool kids don't swear, ", "Mind your FUCKING manners, ", "Francis say cannot swear, ", "Eh don't vulgar ah, "]
 scolding_emojis = ["🙄", "😤", "🤐", "😑", "😲", "🖕🏻", "😨", "😡"]
-vulgarity_list = ['fuck', 'fug', 'wtf', 'frick', 'freak', 'asshole', 'ccb', 'knn', 'bitch', 'bij', 'screw', 'kanina', 'diu']
+vulgarity_list = ['fuck', 'fug', 'wtf', 'frick', 'freak', 'asshole', 'ccb', 'knn', 'bitch', 'bij', 'screw', 'kanina', 'diu', 'smlj']
 vulgarity_list_custom = []
 today = datetime.date.today()
 finals_date = datetime.date(2018, 4, 28)
 finals_reminder_text = "Guys, finals in " + str(finals_date - today).split(",")[0] + "! 😱"
 song_holder = ""
+leaderboard = {}
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -58,12 +59,14 @@ def start(bot, update):
 
 def finals_reminder(bot, update):
 	rand = random()
-	# A 10% chance to give finals reminder
+	# A 5% chance to give finals reminder
 	if rand <= 0.05:
 		chat_id = update.message.chat_id
 		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 		bot.send_message(chat_id=chat_id, text=finals_reminder_text)
-	if True:
+	rand = random()
+	# A 2% chance to show you francis' face
+	if rand <= 0.02:
 		chat_id = update.message.chat_id
 		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 		image_rand = randrange(1,15)
@@ -76,7 +79,16 @@ def caps(bot, update, args):
 
 def vulgarities(bot, update):
 	chat_id = update.message.chat_id
-	sender_name = str(update.message.from_user.first_name)
+	sender = update.message.from_user
+	sender_name = str(sender.first_name)
+	sender_id = sender.id
+
+	# Increment vulgarity score of user
+	try:
+		leaderboard[sender_id][0] += 1
+	except:
+		leaderboard[sender_id] = [1, sender_name]
+
 	chosen = randint(0, len(scolding_phrases) - 1)
 	bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 	bot.send_message(chat_id=chat_id, text=scolding_phrases[chosen] + sender_name + "! " + scolding_emojis[chosen])
@@ -127,6 +139,16 @@ def remove_banned(bot, update, args):
 	else:	
 		bot.send_message(chat_id=chat_id, text="Vulgarity does not exist!")
 
+def naughty_list(bot, update):
+	chat_id = update.message.chat_id
+	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
+	output = "<b>Naughty List:</b>\n"
+	sorted_list = sorted(leaderboard, key = lambda x: leaderboard[x][0], reverse = True)
+	for i in range(min(len(leaderboard), 10)):
+		user = leaderboard[sorted_list[i]]
+		output += str(i+1) + ".  " + user[1] + "  |  Score: " + str(user[0]) + "\n"
+	bot.send_message(chat_id=chat_id, text=output, parse_mode=telegram.ParseMode.HTML)
+
 def joke(bot, update):
 	chat_id = update.message.chat_id
 	sender_name = str(update.message.from_user.first_name)
@@ -141,6 +163,7 @@ song_handler = MessageHandler(filter_songs, say_lyrics)
 banned_handler = CommandHandler('banned', show_banned)
 add_handler = CommandHandler('add', add_banned, pass_args=True)
 remove_handler = CommandHandler('remove', remove_banned, pass_args=True)
+leaderboard_handler = CommandHandler('naughtyList', naughty_list)
 finals_handler = MessageHandler(Filters.text, finals_reminder)
 caps_handler = CommandHandler('caps', caps, pass_args=True)
 joke_handler = CommandHandler('joke', joke)
@@ -154,6 +177,7 @@ dispatcher.add_handler(song_handler)
 dispatcher.add_handler(add_handler)
 dispatcher.add_handler(joke_handler)
 dispatcher.add_handler(finals_handler)
+dispatcher.add_handler(leaderboard_handler)
 dispatcher.add_handler(caps_handler)
 
 # Run the bot
