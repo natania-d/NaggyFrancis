@@ -1,5 +1,6 @@
 import telegram
 from telegram.ext import Updater
+from random_words import RandomWords
 import logging
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
@@ -18,21 +19,22 @@ TOKEN = '424538023:AAG_WU0hiDPABPFKnm94UiatzjUFOuA6CP0'
 bot = telegram.Bot(token=TOKEN)
 updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
-scolding_phrases = ["Mind your language, ", "Don't be rude, ", "Watch your mouth, ", "No vulgarities! Be a Francis, ", "Cool kids don't swear, ", "Mind your FUCKING manners, ", "Francis say cannot swear, ", "Eh don't vulgar ah, "]
+scolding_phrases = ["Mind your language, ", "Don't be rude, ", "Watch your mouth, ", "No vulgarities! Be a Francis, ", "Cool kids don't swear, ", "Mind your freaking manners, ", "Francis say cannot swear, ", "Eh don't vulgar ah, "]
 scolding_emojis = ["🙄", "😤", "🤐", "😑", "😲", "🖕🏻", "😨", "😡"]
 vulgarity_list = ['fuck', 'fug', 'wtf', 'frick', 'freak', 'asshole', 'ccb', 'knn', 'bitch', 'bij', 'screw', 'kanina', 'diu', 'smlj']
-vulgarity_list_custom = []
+banned_list_custom = []
 today = datetime.date.today()
 finals_date = datetime.date(2018, 4, 28)
 finals_reminder_text = "Guys, finals in " + str(finals_date - today).split(",")[0] + "! 😱"
 song_holder = ""
+date_last_added = datetime.date.today()
 leaderboard = {}
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 class FilterVulgarities(BaseFilter):
-    def filter(self, message):
-    	compiled_lst = vulgarity_list + vulgarity_list_custom
+    def filter(self, message):	
+    	compiled_lst = vulgarity_list + banned_list_custom
     	return re.compile('|'.join(compiled_lst),re.IGNORECASE).search(message.text)
 
 class FilterSongs(BaseFilter):
@@ -55,22 +57,29 @@ filter_songs = FilterSongs()
 # Functions
 def start(bot, update):
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
-	bot.send_message(chat_id=update.message.chat_id, text="Hi there! I hate vulgarities! 😘")
+	bot.send_message(chat_id=update.message.chat_id, text="😘😘😘😘😘😘😘😘😘")
 
 def finals_reminder(bot, update):
 	rand = random()
+	chat_id = update.message.chat_id
 	# A 5% chance to give finals reminder
 	if rand <= 0.05:
-		chat_id = update.message.chat_id
 		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 		bot.send_message(chat_id=chat_id, text=finals_reminder_text)
 	rand = random()
 	# A 2% chance to show you francis' face
 	if rand <= 0.02:
-		chat_id = update.message.chat_id
 		bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
 		image_rand = randrange(1,15)
 		bot.sendPhoto(chat_id=chat_id, photo=open('images/' + str(image_rand) + '.jpg', 'rb'));
+
+	# Add a word per day
+	global date_last_added
+	global banned_list_custom
+	if datetime.date.today() - date_last_added >= 1:
+		banned_list_custom.append(RandomWords().random_word())
+
+		
 
 def caps(bot, update, args):
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
@@ -105,7 +114,7 @@ def show_banned(bot, update):
 	output = "" 
 	for word in vulgarity_list:
 		output += ("  •  " + word + "\n")
-	for word in vulgarity_list_custom:
+	for word in banned_list_custom:
 		output += ("  •  " + word + "\n")	
 	bot.send_message(chat_id=chat_id, text="<b>Here is the list of banned words:</b>\n" + output, parse_mode=telegram.ParseMode.HTML)
 
@@ -117,11 +126,11 @@ def add_banned(bot, update, args):
 		bot.send_message(chat_id=chat_id, text="No input, try again.")
 		return 
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
-	if (new_word not in vulgarity_list_custom) and (new_word not in vulgarity_list):
-		vulgarity_list_custom.append(new_word)
-		bot.send_message(chat_id=chat_id, text="Vulgarity added! 😋")
+	if (new_word not in banned_list_custom) and (new_word not in vulgarity_list):
+		banned_list_custom.append(new_word)
+		bot.send_message(chat_id=chat_id, text="New banned word added! 😋")
 	else:
-		bot.send_message(chat_id=chat_id, text="Vulgarity already exists! 😒")
+		bot.send_message(chat_id=chat_id, text="Word already exist in list! 😒")
 
 def remove_banned(bot, update, args):
 	chat_id = update.message.chat_id
@@ -131,13 +140,13 @@ def remove_banned(bot, update, args):
 		bot.send_message(chat_id=chat_id, text="No input, try again.")
 		return 		
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
-	if rm_word in vulgarity_list_custom:
-		vulgarity_list_custom.remove(rm_word)
-		bot.send_message(chat_id=chat_id, text=rm_word + " removed.")
+	if rm_word in banned_list_custom:
+		banned_list_custom.remove(rm_word)
+		bot.send_message(chat_id=chat_id, text=rm_word + " removed from banned list!")
 	elif rm_word in vulgarity_list:
-		bot.send_message(chat_id=chat_id, text="Default vulgarities cannot be removed! 😤")
+		bot.send_message(chat_id=chat_id, text="Default banned words cannot be removed! 😤")
 	else:	
-		bot.send_message(chat_id=chat_id, text="Vulgarity does not exist!")
+		bot.send_message(chat_id=chat_id, text="Word does not exist!")
 
 def naughty_list(bot, update):
 	chat_id = update.message.chat_id
