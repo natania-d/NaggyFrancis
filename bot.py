@@ -29,6 +29,7 @@ finals_reminder_text = "Guys, finals in " + str(finals_date - today).split(",")[
 song_holder = ""
 date_last_added = datetime.date.today()
 leaderboard = {}
+non_vulgarities = {
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -95,8 +96,10 @@ def vulgarities(bot, update):
 	# Increment vulgarity score of user
 	try:
 		leaderboard[sender_id][0] += 1
+		non_vulgarities[sender_id][0] = 0
 	except:
 		leaderboard[sender_id] = [1, sender_name]
+		non_vulgarities[sender_id] = [0, sender_name]
 
 	chosen = randint(0, len(scolding_phrases) - 1)
 	bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.TYPING)
@@ -164,6 +167,22 @@ def joke(bot, update):
 	bot.send_chat_action(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
 	bot.send_message(chat_id=chat_id, text="Here's a joke: " + sender_name)
 
+def non_vulgarities(bot, update):
+	chat_id = update.message.chat_id
+	sender = update.message.from_user
+	sender_name = str(sender.first_name)
+	sender_id = sender.id
+
+	try:
+		non_vulgarities[sender_id][0] -=1
+		if non_vulgarities[sender_id][0] = 0
+			if leaderboard[sender_id][0] = 1
+				leaderboard[sender_id].remove()
+			else
+				leaderboard[sender_id][0] -= 1
+			non_vulgarities[sender_id].remove()
+	except:
+
 
 # Handlers
 start_handler = CommandHandler('start', start)
@@ -176,6 +195,7 @@ leaderboard_handler = CommandHandler('naughtyList', naughty_list)
 finals_handler = MessageHandler(Filters.text, finals_reminder)
 caps_handler = CommandHandler('caps', caps, pass_args=True)
 joke_handler = CommandHandler('joke', joke)
+non_vulgarities_handler = MessageHandler(,non_vulgarities)
 
 # Dispatching: As soon as you add new handlers to dispatcher, they are in effect.
 dispatcher.add_handler(start_handler)
@@ -188,7 +208,8 @@ dispatcher.add_handler(joke_handler)
 dispatcher.add_handler(finals_handler)
 dispatcher.add_handler(leaderboard_handler)
 dispatcher.add_handler(caps_handler)
-
+dispatcher.add_handler(non_vulgarities_handler)
+	
 # Run the bot
 updater.start_polling()
 
